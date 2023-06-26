@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Net7Basic.Data;
 
@@ -11,9 +12,11 @@ using Net7Basic.Data;
 namespace Net7Basic.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230626122706_second")]
+    partial class second
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,9 +239,6 @@ namespace Net7Basic.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -248,8 +248,6 @@ namespace Net7Basic.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Blogs");
                 });
@@ -323,13 +321,6 @@ namespace Net7Basic.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Net7Basic.Models.Blog", b =>
-                {
-                    b.HasOne("Net7Basic.Models.ApplicationUser", null)
-                        .WithMany("Blogs")
-                        .HasForeignKey("ApplicationUserId");
-                });
-
             modelBuilder.Entity("Net7Basic.Models.Post", b =>
                 {
                     b.HasOne("Net7Basic.Models.Blog", "Blog")
@@ -339,11 +330,6 @@ namespace Net7Basic.Migrations
                         .IsRequired();
 
                     b.Navigation("Blog");
-                });
-
-            modelBuilder.Entity("Net7Basic.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Blogs");
                 });
 
             modelBuilder.Entity("Net7Basic.Models.Blog", b =>
