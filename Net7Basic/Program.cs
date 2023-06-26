@@ -8,9 +8,21 @@ using Net7Basic.Data;
 using Net7Basic.Models;
 using Net7Basic.Repositories.Abstract;
 using Net7Basic.Repositories.Concrete;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+var fileLog = DateTime.Now.ToString("dd-MM-yyyy") + ".log";
+Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Map("FileName", $"C:\\Logs\\MyWebsite\\log-{fileLog}", (fileName, wt) => wt.File($"{fileName}.txt"))
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+
+                .CreateLogger();
+
 
 // Add services to the container.
 

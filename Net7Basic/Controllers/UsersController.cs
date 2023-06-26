@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Net7Basic.Dtos;
 using Net7Basic.Repositories.Abstract;
@@ -42,6 +43,28 @@ namespace Net7Basic.Controllers
 
             return BadRequest("Cannot login !");
 
+        }
+
+        [HttpPost("Role")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> AddRole(string role)
+        {
+            var result = await _userRepository.AddRole(role);
+            return Ok(result);
+
+        }
+
+        [HttpPost("AddRoleToPerson")]
+        [Authorize(Roles ="admin")]
+        public async Task<IActionResult> AddRoleToUser(string username,string role)
+        {
+            var result = await _userRepository.AddRoleToUser(username, role);
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
         }
 
     }

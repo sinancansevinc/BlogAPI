@@ -26,13 +26,14 @@ namespace Net7Basic.Repositories.Concrete
             _context = context;
         }
 
-        public bool IsUniqueUser(string userName)
+        public bool IsUserExist(string userName)
         {
             var user = _context.Users.FirstOrDefault(p => p.UserName.ToLower() == userName.ToLower());
             if (user == null)
-                return true;
-
-            return false;
+            {
+                return false;
+            }
+            return true;
         }
 
         public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
@@ -66,6 +67,8 @@ namespace Net7Basic.Repositories.Concrete
 
         public string GetToken(string username, List<string> roles)
         {
+            
+
             var key = Encoding.ASCII.GetBytes(secretKey);
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -87,8 +90,8 @@ namespace Net7Basic.Repositories.Concrete
 
         public async Task<bool> Register(RegistrationRequestDto registerRequestDto)
         {
-            var isUnique = IsUniqueUser(registerRequestDto.UserName);
-            if (!isUnique)
+            var isExist = IsUserExist(registerRequestDto.UserName);
+            if (isExist)
             {
                 throw new Exception();
             }
@@ -107,7 +110,7 @@ namespace Net7Basic.Repositories.Concrete
                 var registerResult = await _userManager.CreateAsync(applicationUser, registerRequestDto.Password);
                 if (registerResult.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(applicationUser, "admin");
+                    await _userManager.AddToRoleAsync(applicationUser, "human");
 
                     return true;
                 }
@@ -121,5 +124,65 @@ namespace Net7Basic.Repositories.Concrete
                 throw new Exception("Cannot register");
             }
         }
+
+        public async Task<ResponseDto<IdentityRole>> AddRole(string roleName)
+        {
+
+            var isRoleExist = await _roleManager.RoleExistsAsync(roleName);
+            if (!isRoleExist)
+            {
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
+                return new ResponseDto<IdentityRole>
+                {
+                    IsSuccess = true,
+                    Data = await _roleManager.FindByNameAsync(roleName),
+                    Errors = null
+
+                };
+            }
+
+            return new ResponseDto<IdentityRole>
+            {
+                IsSuccess = false,
+                Data = null,
+                Errors = new List<string>() { "Role already exist" }
+            };
+        }
+
+        public async Task<ResponseDto<ApplicationUser>> AddRoleToUser(string userName, string roleName)
+        {
+
+            var isUserExist = IsUserExist(userName);
+            var isRoleExist = await _roleManager.FindByNameAsync(roleName);
+
+            if (!isUserExist || isRoleExist == null)
+            {
+                return new ResponseDto<ApplicationUser>
+                {
+                    IsSuccess = false,
+                    Data = null,
+                    Errors = new List<string>
+                    {
+                        "User or role is not exist"
+                    }
+                };
+            }
+
+            var applicationUser = await _context.Users.FirstOrDefaultAsync(p => p.UserName.ToLower() == userName.ToLower());
+
+            var rolesFromUser = await _userManager.GetRolesAsync(applicationUser);
+            await _userManager.RemoveFromRolesAsync(applicationUser,rolesFromUser);
+
+            await _userManager.AddToRoleAsync(applicationUser, roleName);
+
+            return new ResponseDto<ApplicationUser>
+            {
+                IsSuccess = true,
+                Data = applicationUser,
+                Errors = null
+            };
+
+        }
+
     }
 }

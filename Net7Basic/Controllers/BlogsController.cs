@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace Net7Basic.Controllers
 {
@@ -12,6 +13,7 @@ namespace Net7Basic.Controllers
         [HttpGet]
         public IActionResult GetBlogs()
         {
+            Log.Fatal("Test logs");
             return Ok("Blogs come !");
         }
     }
