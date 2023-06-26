@@ -12,6 +12,6 @@ namespace Net7Basic.Data
         }
 
         public DbSet<Blog> Blogs { get; set; }
-        public DbSet<Post> Post { get; set; }
+        public DbSet<Post> Posts { get; set; }
     }
 }
