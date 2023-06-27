@@ -6,7 +6,7 @@ namespace Net7Basic.Models
     {
         public int Id { get; set; }
         public string Title { get; set; }
-        public ICollection<Post> Posts { get; } = new List<Post>();
+        public ICollection<Post> Posts { get; set; }
 
         [ForeignKey("User")]
         public string UserId { get; set; }

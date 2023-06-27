@@ -6,7 +6,8 @@ namespace Net7Basic.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public ICollection<Blog> Blogs{ get; } = new List<Blog>();
+        public virtual ICollection<Blog> Blogs { get; set; }
+        public virtual ICollection<Post> Posts { get; set; }
 
 
     }

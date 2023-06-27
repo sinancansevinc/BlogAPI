@@ -55,7 +55,7 @@ namespace Net7Basic.Controllers
         }
 
         [HttpPost("AddRoleToPerson")]
-        [Authorize(Roles ="admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddRoleToUser(string username,string role)
         {
             var result = await _userRepository.AddRoleToUser(username, role);

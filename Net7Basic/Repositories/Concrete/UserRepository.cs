@@ -110,6 +110,10 @@ namespace Net7Basic.Repositories.Concrete
                 var registerResult = await _userManager.CreateAsync(applicationUser, registerRequestDto.Password);
                 if (registerResult.Succeeded)
                 {
+                    if (!await _roleManager.RoleExistsAsync("human"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole("human"));
+                    }
                     await _userManager.AddToRoleAsync(applicationUser, "human");
 
                     return true;

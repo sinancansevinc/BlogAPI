@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Net7Basic.Data;
 using Net7Basic.Mapping;
 using Net7Basic.Models;
+using Net7Basic.Modules;
 using Net7Basic.Repositories.Abstract;
 using Net7Basic.Repositories.Concrete;
 using Serilog;
@@ -68,8 +71,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+
+
+
+//builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 
 
 builder.Services.AddAutoMapper(typeof(MappingConfig));
@@ -90,6 +96,13 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuer = false,
         ValidateAudience = false
     };
+});
+
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
+{
+    builder.RegisterModule(new AutofacBusinessModule());
 });
 
 var app = builder.Build();

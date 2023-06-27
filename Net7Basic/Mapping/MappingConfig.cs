@@ -10,6 +10,8 @@ namespace Net7Basic.Mapping
         {
             CreateMap<Blog, BlogDto>().ReverseMap();
             CreateMap<Blog, BlogCreateDto>().ReverseMap();
+            CreateMap<Post, PostCreateDto>().ReverseMap();
+            CreateMap<Post, PostDto>().ReverseMap();
         }
 
     }

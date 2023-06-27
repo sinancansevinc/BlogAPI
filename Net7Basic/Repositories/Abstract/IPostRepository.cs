@@ -2,7 +2,8 @@
 
 namespace Net7Basic.Repositories.Abstract
 {
-    public interface IBlogRepository:IGenericRepository<Blog>
+    public interface IPostRepository: IGenericRepository<Post>
     {
+        
     }
 }

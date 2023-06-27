@@ -1,61 +1,60 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Net7Basic.Dtos;
 using Net7Basic.Models;
 using Net7Basic.Repositories.Abstract;
 using Serilog;
-using System.Security.Claims;
+using System.Data;
 
 namespace Net7Basic.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BlogsController : ControllerBase
+    public class PostsController : ControllerBase
     {
-        private readonly IBlogRepository _blogRepository;
+        private readonly IPostRepository _postRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
 
-        public BlogsController(IBlogRepository blogRepository, UserManager<ApplicationUser> userManager, IMapper mapper)
+        public PostsController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, IMapper mapper)
         {
-            _blogRepository = blogRepository;
+            _postRepository = postRepository;
             _userManager = userManager;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBlogs()
+        public async Task<IActionResult> GetPosts()
         {
             try
             {
 
-                var blogs = await _blogRepository.GetAll(includeProperties: "User");
-                var blogsDto = _mapper.Map<List<BlogDto>>(blogs);
+                var posts = await _postRepository.GetAll(includeProperties: "User,Blog");
+                var postsDto = _mapper.Map<List<PostDto>>(posts);
 
 
-                return Ok(blogsDto);
+                return Ok(postsDto);
             }
             catch (Exception e)
             {
 
                 Log.Fatal(e.Message);
                 return BadRequest(e.Message);
-               
+
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBlog(int id)
+        public async Task<IActionResult> GetPost(int id)
         {
             try
             {
-                var blog = await _blogRepository.Get(p=>p.Id==id, includeProperties: "User");
-                var blogDto = _mapper.Map<BlogDto>(blog);
-                return Ok(blogDto);
+                var post = await _postRepository.Get(p => p.Id == id, includeProperties: "User,Blog");
+                var postDto = _mapper.Map<PostDto>(post);
+                return Ok(postDto);
             }
             catch (Exception e)
             {
@@ -66,19 +65,19 @@ namespace Net7Basic.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin")]
-        public async Task<ActionResult<ResponseDto<Blog>>> AddBlog([FromBody]BlogCreateDto blogCreateDto)
+        [Authorize(Roles = "admin,human")]
+        public async Task<ActionResult<ResponseDto<Post>>> AddPost([FromBody] PostCreateDto postCreateDto)
         {
             try
             {
                 var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
-                Blog blog = _mapper.Map<Blog>(blogCreateDto);
-                blog.UserId = user.Id;
-                blog.CreatedAt = DateTime.Now;
+                Post post = _mapper.Map<Post>(postCreateDto);
+                post.UserId = user.Id;
+                post.CreatedAt = DateTime.Now;
 
-                await _blogRepository.Create(blog);
+                await _postRepository.Create(post);
 
-                return Ok(blog);
+                return Ok(post);
             }
             catch (Exception e)
             {
@@ -87,7 +86,6 @@ namespace Net7Basic.Controllers
                 return BadRequest();
             }
         }
-
 
     }
 }

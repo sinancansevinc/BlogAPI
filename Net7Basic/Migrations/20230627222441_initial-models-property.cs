@@ -5,21 +5,21 @@
 namespace Net7Basic.Migrations
 {
     /// <inheritdoc />
-    public partial class second : Migration
+    public partial class initialmodelsproperty : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Title",
-                table: "Blogs",
+                name: "Description",
+                table: "Posts",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<string>(
-                name: "UserId",
-                table: "Blogs",
+                name: "Title",
+                table: "Posts",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
@@ -29,12 +29,12 @@ namespace Net7Basic.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Title",
-                table: "Blogs");
+                name: "Description",
+                table: "Posts");
 
             migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Blogs");
+                name: "Title",
+                table: "Posts");
         }
     }
 }
