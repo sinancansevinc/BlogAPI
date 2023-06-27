@@ -27,7 +27,7 @@ To get started with the BlogApi project, follow these steps:
 Clone the repository:
 
 ```shell
-git clone https://github.com/your-username/Net7Basic.git
+git clone https://github.com/sinancansevinc/Net7Basic.git
 
 ## Configure the MSSQL database:
 
