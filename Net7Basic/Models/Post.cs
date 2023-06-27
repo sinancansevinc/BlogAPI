@@ -9,5 +9,7 @@ namespace Net7Basic.Models
         [ForeignKey("Blog")]
         public int BlogId { get; set; }
         public Blog Blog { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }
