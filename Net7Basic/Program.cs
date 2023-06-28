@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,11 +8,13 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Net7Basic.Data;
+using Net7Basic.Dtos;
 using Net7Basic.Mapping;
 using Net7Basic.Models;
 using Net7Basic.Modules;
 using Net7Basic.Repositories.Abstract;
 using Net7Basic.Repositories.Concrete;
+using Net7Basic.Validators;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Text;
@@ -71,11 +74,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IValidator<BlogCreateDto>, BlogCreateDtoValidator>();
+builder.Services.AddScoped<IValidator<PostCreateDto>, PostCreateDtoValidator>();
 
 
-
-//builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 
 
 builder.Services.AddAutoMapper(typeof(MappingConfig));

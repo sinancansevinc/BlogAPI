@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,12 +20,14 @@ namespace Net7Basic.Controllers
         private readonly IBlogRepository _blogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
+        private readonly IValidator<BlogCreateDto> _validator;
 
-        public BlogsController(IBlogRepository blogRepository, UserManager<ApplicationUser> userManager, IMapper mapper)
+        public BlogsController(IBlogRepository blogRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<BlogCreateDto> validator)
         {
             _blogRepository = blogRepository;
             _userManager = userManager;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -71,6 +74,13 @@ namespace Net7Basic.Controllers
         {
             try
             {
+                var validationResult = _validator.Validate(blogCreateDto);
+
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(validationResult.Errors.First());
+                }
+                
                 var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
                 Blog blog = _mapper.Map<Blog>(blogCreateDto);
                 blog.UserId = user.Id;

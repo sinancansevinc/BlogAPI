@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,12 +19,13 @@ namespace Net7Basic.Controllers
         private readonly IPostRepository _postRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
-
-        public PostsController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, IMapper mapper)
+        private readonly IValidator<PostCreateDto> _validator;
+        public PostsController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<PostCreateDto> validator)
         {
             _postRepository = postRepository;
             _userManager = userManager;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -70,6 +72,11 @@ namespace Net7Basic.Controllers
         {
             try
             {
+                var validationResult = _validator.Validate(postCreateDto);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(validationResult.Errors);
+                }
                 var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
                 Post post = _mapper.Map<Post>(postCreateDto);
                 post.UserId = user.Id;
