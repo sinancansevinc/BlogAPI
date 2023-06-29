@@ -29,12 +29,12 @@ namespace Net7Basic.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPosts()
+        public async Task<IActionResult> GetPosts(int pageSize = 0, int pageNumber = 1)
         {
             try
             {
 
-                var posts = await _postRepository.GetAll(includeProperties: "User,Blog");
+                var posts = await _postRepository.GetAll(includeProperties: "User,Blog",pageSize:pageSize,pageNumber:pageNumber);
                 var postsDto = _mapper.Map<List<PostDto>>(posts);
 
 
