@@ -32,7 +32,7 @@ git clone https://github.com/sinancansevinc/Net7Basic.git
 ## Configure the MSSQL database:
 
 Create a new MSSQL database.
-Update the connection string in the project  configuration files to point to your database.
+Update the connection string in the project appsettings,  configuration files to point to your database.
 Install the required dependencies:
 
 -Open the solution in Visual Studio or your preferred development environment.
