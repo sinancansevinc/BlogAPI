@@ -55,8 +55,6 @@ namespace Net7Basic.Controllers
 
                     _memoryCache.Set(postCacheKey, posts, cacheEntryOptions);
 
-
-
                 }
 
                 var postsDto = _mapper.Map<List<PostDto>>(posts);
