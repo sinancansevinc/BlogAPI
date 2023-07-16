@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Net7Basic.Dtos;
 using Net7Basic.Models;
 using Net7Basic.Repositories.Abstract;
 using Serilog;
 using System.Data;
+using System.Globalization;
 
 namespace Net7Basic.Controllers
 {
@@ -16,16 +18,20 @@ namespace Net7Basic.Controllers
     [ApiController]
     public class PostsController : ControllerBase
     {
+        private const string postCacheKey = "postList";
+        private readonly IMemoryCache _memoryCache;
         private readonly IPostRepository _postRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
+        
         private readonly IValidator<PostCreateDto> _validator;
-        public PostsController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<PostCreateDto> validator)
+        public PostsController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<PostCreateDto> validator, IMemoryCache memoryCache)
         {
             _postRepository = postRepository;
             _userManager = userManager;
             _mapper = mapper;
             _validator = validator;
+            _memoryCache = memoryCache;
         }
 
         [HttpGet]
@@ -33,20 +39,36 @@ namespace Net7Basic.Controllers
         {
             try
             {
+                if (_memoryCache.TryGetValue(postCacheKey, out List<Post> posts))
+                {
+                    Log.Information("Post list found in cache");
+                }
+                else
+                {
 
-                var posts = await _postRepository.GetAll(includeProperties: "User,Blog",pageSize:pageSize,pageNumber:pageNumber);
+
+                    posts = await _postRepository.GetAll(includeProperties: "User,Blog", pageSize: pageSize, pageNumber: pageNumber);
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromSeconds(60))
+                        .SetAbsoluteExpiration(TimeSpan.FromSeconds(3600))
+                        .SetPriority(CacheItemPriority.Normal);
+
+                    _memoryCache.Set(postCacheKey, posts, cacheEntryOptions);
+
+
+
+                }
+
                 var postsDto = _mapper.Map<List<PostDto>>(posts);
-
-
                 return Ok(postsDto);
+
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
 
-                Log.Fatal(e.Message);
-                return BadRequest(e.Message);
-
+                throw new Exception(ex.Message);
             }
+
         }
 
         [HttpGet("{id}")]
@@ -88,9 +110,8 @@ namespace Net7Basic.Controllers
             }
             catch (Exception e)
             {
-
-                Log.Fatal(e.Message);
-                return BadRequest();
+                throw new Exception(e.Message);
+               
             }
         }
 

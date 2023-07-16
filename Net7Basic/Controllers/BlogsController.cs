@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Net7Basic.Dtos;
 using Net7Basic.Models;
 using Net7Basic.Repositories.Abstract;
@@ -17,17 +18,20 @@ namespace Net7Basic.Controllers
     [ApiController]
     public class BlogsController : ControllerBase
     {
+        private const string blogListCacheKey = "blogList";
+        private IMemoryCache _memoryCache;
         private readonly IBlogRepository _blogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IValidator<BlogCreateDto> _validator;
 
-        public BlogsController(IBlogRepository blogRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<BlogCreateDto> validator)
+        public BlogsController(IBlogRepository blogRepository, UserManager<ApplicationUser> userManager, IMapper mapper, IValidator<BlogCreateDto> validator, IMemoryCache memoryCache)
         {
             _blogRepository = blogRepository;
             _userManager = userManager;
             _mapper = mapper;
             _validator = validator;
+            _memoryCache = memoryCache;
         }
 
         [HttpGet]
@@ -35,19 +39,32 @@ namespace Net7Basic.Controllers
         {
             try
             {
+                if (_memoryCache.TryGetValue(blogListCacheKey, out List<Blog> blogs))
+                {
+                    Log.Information("Blog list found in cache.");
 
-                var blogs = await _blogRepository.GetAll(includeProperties: "User",pageSize:pageSize,pageNumber:pageNumber);
+                }
+                else
+                {
+                    blogs = await _blogRepository.GetAll(includeProperties: "User", pageSize: pageSize, pageNumber: pageNumber);
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromSeconds(60))
+                        .SetAbsoluteExpiration(TimeSpan.FromSeconds(3600))
+                        .SetPriority(CacheItemPriority.Normal);
+
+                    _memoryCache.Set(blogListCacheKey, blogs, cacheEntryOptions);
+
+                }
+
                 var blogsDto = _mapper.Map<List<BlogDto>>(blogs);
-
 
                 return Ok(blogsDto);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
 
-                Log.Fatal(e.Message);
-                return BadRequest(e.Message);
-               
+                throw new Exception(ex.Message);
+
             }
         }
 
@@ -56,21 +73,20 @@ namespace Net7Basic.Controllers
         {
             try
             {
-                var blog = await _blogRepository.Get(p=>p.Id==id, includeProperties: "User");
+                var blog = await _blogRepository.Get(p => p.Id == id, includeProperties: "User");
                 var blogDto = _mapper.Map<BlogDto>(blog);
                 return Ok(blogDto);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                throw new Exception(ex.Message);
 
-                Log.Fatal(e.Message);
-                return BadRequest(e.Message);
             }
         }
 
         [HttpPost]
         [Authorize(Roles = "admin")]
-        public async Task<ActionResult<ResponseDto<Blog>>> AddBlog([FromBody]BlogCreateDto blogCreateDto)
+        public async Task<ActionResult<ResponseDto<Blog>>> AddBlog([FromBody] BlogCreateDto blogCreateDto)
         {
             try
             {
@@ -80,7 +96,7 @@ namespace Net7Basic.Controllers
                 {
                     return BadRequest(validationResult.Errors.First());
                 }
-                
+
                 var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
                 Blog blog = _mapper.Map<Blog>(blogCreateDto);
                 blog.UserId = user.Id;
@@ -93,8 +109,8 @@ namespace Net7Basic.Controllers
             catch (Exception e)
             {
 
-                Log.Fatal(e.Message);
-                return BadRequest();
+                throw new Exception(e.Message);
+
             }
         }
 
